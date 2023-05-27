@@ -16,97 +16,8 @@ from sqlmodel import Relationship, create_engine, Field, Session, SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 import uvicorn
 
-#--------------------------------------------------------------
-# canvas
+from models import Canvas, CanvasCreate, CanvasRead, CanvasUpdate, Node, NodeCreate, NodeRead, NodeUpdate, Edge, EdgeCreate, EdgeRead, EdgeUpdate
 
-# we need four models so that schema is correctly interpreted between database,
-# POST and GET requests. Each of these has different optional / required fields.
-# See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/
-class CanvasBase(SQLModel):
-    name: str = Field(unique=True)
-
-# table=True is passed to the parent __init__subclass__()
-# https://docs.python.org/3/reference/datamodel.html#object.__init_subclass__
-class Canvas(CanvasBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
-    nodes: List["Node"] = Relationship(back_populates="canvas")
-    edges: List["Edge"] = Relationship(back_populates="canvas")
-
-class CanvasCreate(CanvasBase):
-    pass
-
-class CanvasRead(CanvasBase):
-    id: int
-
-class CanvasUpdate(SQLModel):
-    name: Optional[str] = None
-
-#--------------------------------------------------------------
-# nodes
-
-class NodeBase(SQLModel):
-    # this can be markdown, or a link, or org-id
-    contents: str
-    x: int
-    y: int
-    width: int
-    height: int
-    canvas_id: int = Field(default=None, foreign_key="canvas.id")
-
-class Node(NodeBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
-    canvas: Canvas = Relationship(back_populates="nodes")
-
-class NodeRead(NodeBase):
-    id: int
-
-class NodeCreate(NodeBase):
-    pass
-
-class NodeUpdate(SQLModel):
-    contents: Optional[str] = None
-    x: Optional[int] = None
-    y: Optional[int] = None
-    width: Optional[int] = None
-    height: Optional[int] = None
-
-
-# --------------------------------------------------------------
-# edges
-
-class EdgeBase(SQLModel):
-    canvas_id: int = Field(default=None, foreign_key="canvas.id")
-    node_from_id: int = Field(default=None, foreign_key="node.id")
-    node_from_anchor: int
-    node_to_id: int = Field(default=None, foreign_key="node.id")
-    node_to_anchor: int
-
-
-class Edge(EdgeBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
-
-    canvas: Canvas = Relationship(back_populates="edges")
-    # see https://github.com/tiangolo/sqlmodel/issues/10
-    # we have to do extra work due to multiple relations between the same objects
-    # if we want nodes to have incoming / outgoing edges, we have to set them up in both directions
-    # see https://github.com/tiangolo/sqlmodel/issues/10#issuecomment-1537445078
-    node_from: Node = Relationship(sa_relationship_kwargs={"primaryjoin": "Edge.node_from_id==Node.id"})
-    node_to: Node = Relationship(sa_relationship_kwargs={"primaryjoin": "Edge.node_to_id==Node.id"})
-
-class EdgeRead(EdgeBase):
-    id: int
-
-class EdgeCreate(EdgeBase):
-    pass
-
-class EdgeUpdate(SQLModel):
-    node_from_id: Optional[int] = None
-    node_from_anchor: Optional[int] = None
-    node_to_id: Optional[int] = None
-    node_to_anchor: Optional[int] = None
 
 # --------------------------------------------------------------
 
@@ -114,13 +25,18 @@ engine = create_async_engine(f"sqlite+aiosqlite:///blap.db", echo=False, connect
 
 app = FastAPI(openapi_url="/api/openapi.json", docs_url="/api/docs", redoc_url="/api/redoc")
 
+async def add_dummy_data():
+    canvas = await add_canvas(CanvasCreate(name="My Canvas"))
+    node1 = await add_node(canvas.id, NodeCreate(title="some title.org", contents="My Contents", x=150, y=100, width=300, height=300))
+    node2 = await add_node(canvas.id, NodeCreate(title="another title.org", contents="# More Contents", x=150, y=400, width=300, height=300))    
+
 @app.on_event("startup")
 async def on_startup():
     print("ASYNC startup")
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    #await add_canvas(CanvasCreate(name="My Canvas"))
+    #await add_dummy_data()
 
 router = APIRouter(prefix="/api")
 
@@ -185,11 +101,8 @@ async def add_node(canvas_id: int, node: NodeCreate):
     """Add a node to the canvas.
     """
     db_node = Node.from_orm(node)
+    db_node.canvas_id = canvas_id
     async with AsyncSession(engine) as session:
-        # get canvas and associate with new node (copilot omitted this association)
-        # but maybe that's not necessary?
-        #canvas = await session.get(Canvas, canvas_id)
-        #db_node.canvas_id = canvas.id
         session.add(db_node)
         await session.commit()
         await session.refresh(db_node)
@@ -237,10 +150,8 @@ async def add_edge(canvas_id: int, edge: EdgeCreate):
     """Add an edge to the canvas.
     """
     db_edge = Edge.from_orm(edge)
+    db_edge.canvas_id = canvas_id
     async with AsyncSession(engine) as session:
-        # get canvas and associate with new edge (copilot omitted this association)
-        canvas = await session.get(Canvas, canvas_id)
-        db_edge.canvas_id = canvas.id
         session.add(db_edge)
         await session.commit()
         await session.refresh(db_edge)
