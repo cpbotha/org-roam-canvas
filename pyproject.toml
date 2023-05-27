@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "tabletops8"
+name = "org-roam-canvas"
 version = "0.1.0"
 description = ""
 authors = ["Charl P. Botha <cpbotha@vxlabs.com>"]
