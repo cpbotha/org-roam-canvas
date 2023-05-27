@@ -14,6 +14,7 @@ from sqlalchemy import select, Column, DateTime
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import Relationship, create_engine, Field, Session, SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+import uvicorn
 
 #--------------------------------------------------------------
 # canvas
@@ -111,7 +112,7 @@ class EdgeUpdate(SQLModel):
 
 engine = create_async_engine(f"sqlite+aiosqlite:///blap.db", echo=False, connect_args={"check_same_thread": False})
 
-app = FastAPI()
+app = FastAPI(openapi_url="/api/openapi.json", docs_url="/api/docs", redoc_url="/api/redoc")
 
 @app.on_event("startup")
 async def on_startup():
@@ -119,11 +120,11 @@ async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    await add_canvas(CanvasCreate(name="My Canvas"))
+    #await add_canvas(CanvasCreate(name="My Canvas"))
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api")
 
-@router.get("/cavases", response_model=list[CanvasRead])
+@router.get("/canvases", response_model=list[CanvasRead])
 async def get_canvases():
     async with AsyncSession(engine) as session:
         result = await session.execute(select(Canvas))
@@ -273,3 +274,6 @@ async def update_edge(edge_id: int, edge: EdgeUpdate):
 
 # have to include router after all the decorators are defined
 app.include_router(router)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
