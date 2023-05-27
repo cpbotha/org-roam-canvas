@@ -1,8 +1,15 @@
-#root {
+#root2 {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+/* set the desired full size of the canvas */
+#viewport {
+  width: 8192px;
+  height: 8192px;
+  border: 3px solid #aaaaaa;
 }
 
 .logo {

@@ -1,0 +1,8 @@
+
+.node {
+    /* all nodes need position absolute with 0,0 so we can transform them */
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    border: 2px solid steelblue;
+}
