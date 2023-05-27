@@ -1,10 +1,35 @@
 import { useState } from 'react'
+
+import {
+  useQuery,
+} from "@tanstack/react-query";
+
+import axios from "axios";
+
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+
+  const { isLoading, error, data, isFetching } = useQuery({
+    queryKey: ["canvases"],
+    queryFn: () =>
+      axios
+        .get("/api/canvases")
+        .then((res) => res.data),
+  });
+
+  if (isLoading) return "Loading...";
+
+  if (error) {
+    if (error instanceof Error) {
+      return "Unable to load canvases: " + error.message;
+    } else {
+      return "Unable to fetch canvases"
+    }
+  }
 
   return (
     <>
@@ -22,7 +47,7 @@ function App() {
           count is {count}
         </button>
         <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
+          {data.length} canvases
         </p>
       </div>
       <p className="read-the-docs">
