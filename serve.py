@@ -1,10 +1,12 @@
 # develop on this with:
-# poetry env use 3.9
+# poetry env use 3.11
 # poetry install
 # poetry run uvicorn main:app --reload
 
+# https://emacs.stackexchange.com/questions/28665/print-unquoted-output-to-stdout-from-emacsclient
+
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
@@ -20,13 +22,15 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 # POST and GET requests. Each of these has different optional / required fields.
 # See https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/
 class CanvasBase(SQLModel):
-    name: str
+    name: str = Field(unique=True)
 
 # table=True is passed to the parent __init__subclass__()
 # https://docs.python.org/3/reference/datamodel.html#object.__init_subclass__
 class Canvas(CanvasBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
+    nodes: List["Node"] = Relationship(back_populates="canvas")
+    edges: List["Edge"] = Relationship(back_populates="canvas")
 
 class CanvasCreate(CanvasBase):
     pass
@@ -41,18 +45,18 @@ class CanvasUpdate(SQLModel):
 # nodes
 
 class NodeBase(SQLModel):
-    canvas_id: Optional[int] = Field(default=None, foreign_key="canvas.id")
     # this can be markdown, or a link, or org-id
     contents: str
     x: int
     y: int
     width: int
     height: int
+    canvas_id: int = Field(default=None, foreign_key="canvas.id")
 
 class Node(NodeBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
-    canvas_id: Optional[Canvas] = Relationship(back_populates="nodes")
+    canvas: Canvas = Relationship(back_populates="nodes")
 
 class NodeRead(NodeBase):
     id: int
@@ -78,12 +82,18 @@ class EdgeBase(SQLModel):
     node_to_id: int = Field(default=None, foreign_key="node.id")
     node_to_anchor: int
 
+
 class Edge(EdgeBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime, default=datetime.utcnow))
-    canvas_id: Optional[Canvas] = Relationship(back_populates="edges")
-    node_from_id: Optional[Node] = Relationship(back_populates="edges_from")
-    node_to_id: Optional[Node] = Relationship(back_populates="edges_to")
+
+    canvas: Canvas = Relationship(back_populates="edges")
+    # see https://github.com/tiangolo/sqlmodel/issues/10
+    # we have to do extra work due to multiple relations between the same objects
+    # if we want nodes to have incoming / outgoing edges, we have to set them up in both directions
+    # see https://github.com/tiangolo/sqlmodel/issues/10#issuecomment-1537445078
+    node_from: Node = Relationship(sa_relationship_kwargs={"primaryjoin": "Edge.node_from_id==Node.id"})
+    node_to: Node = Relationship(sa_relationship_kwargs={"primaryjoin": "Edge.node_to_id==Node.id"})
 
 class EdgeRead(EdgeBase):
     id: int
@@ -108,6 +118,8 @@ async def on_startup():
     print("ASYNC startup")
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+
+    await add_canvas(CanvasCreate(name="My Canvas"))
 
 router = APIRouter(prefix="/api/v1")
 
