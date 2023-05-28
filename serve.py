@@ -1,11 +1,13 @@
 # develop on this with:
 # poetry env use 3.11
 # poetry install
-# poetry run uvicorn main:app --reload
+# poetry run uvicorn serve:app --reload
 
 # https://emacs.stackexchange.com/questions/28665/print-unquoted-output-to-stdout-from-emacsclient
 
 from datetime import datetime
+import re
+import subprocess
 from typing import List, Optional
 from pathlib import Path
 
@@ -184,6 +186,43 @@ async def update_edge(edge_id: int, edge: EdgeUpdate):
         await session.commit()
         await session.refresh(db_edge)
         return db_edge
+
+# we get literal "s back at start and finish of return
+# also, what happens with \n is hard to predict
+# so here we choose for |---| as separator
+EL_SEP = "|---|"
+ELISP_SN = f'''
+(progn
+  (org-roam-node-find)
+  (let ((node (org-roam-node-at-point)))
+    (format "{EL_SEP}id:%s{EL_SEP}title:%s{EL_SEP}file:%s{EL_SEP}" (org-roam-node-id node) (org-roam-node-title node) (org-roam-node-file node)))
+)'''
+
+@router.get("/or-node-select")
+def select_node():
+    """Find an org-roam node interactively.
+    """
+    # execute emacsclient to ask it for details about the org-roam node with or_node_id
+    ret = subprocess.run(["emacsclient", "-c", "--eval", ELISP_SN], capture_output=True)
+    output = ret.stdout.decode("utf-8")
+
+    output_dict = {}
+    for elem in output.split(EL_SEP):
+        if mo := re.match("(.+):(.+)", elem.strip()):
+            output_dict[mo.group(1)] = mo.group(2)
+
+    if not output_dict:
+        raise HTTPException(status_code=404, detail="No node selected")
+    else:
+        return output_dict
+
+@router.get("/or-node/{or_node_id}")
+def get_or_node_details(or_node_id: int):
+    """Given an org-roam node ID, find its title and contents.
+    """
+
+    # execute emacsclient to ask it for details about the org-roam node with or_node_id
+    subprocess.run(["emacsclient", "-c", "--eval", f"(org-roam-node--find-by-id {or_node_id})"], capture_output=True)
 
 # have to include router after all the decorators are defined
 app.include_router(router)
