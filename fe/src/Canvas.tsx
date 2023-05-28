@@ -27,7 +27,11 @@ export function Canvas(props: { canvasId: number }) {
     return "Unable to load canvases: " + msg;
   }
 
-  return <>{nodes && nodes.map((node: INode) => <Node node={node} />)}</>;
+  return (
+    <>
+      {nodes && nodes.map((node: INode) => <Node key={node.id} node={node} />)}
+    </>
+  );
 
   //data.forEach((node: any) => {
 }

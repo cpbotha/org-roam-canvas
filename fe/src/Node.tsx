@@ -1,3 +1,5 @@
+import Embed, { route } from "react-embed";
+
 import "./Node.css";
 
 export interface INode {
@@ -16,6 +18,10 @@ export interface INode {
 
 export function Node(props: { node: INode }) {
   const { node } = props;
+
+  // Embed only does the sites and filetypes it explicitly supports
+  // for other websites, we should try a fallback
+  //node.link = "https://soundcloud.com/kink/mechtaya";
   return (
     <div
       className="node"
@@ -26,6 +32,12 @@ export function Node(props: { node: INode }) {
       }}
     >
       {node.title}
+      {node.link && (
+        <Embed
+          url={node.link}
+          renderVoid={(props, state, error) => <div>{props.url}</div>}
+        />
+      )}
     </div>
   );
 }

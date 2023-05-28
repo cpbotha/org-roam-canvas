@@ -13,7 +13,8 @@
     "@tanstack/react-query": "^4.29.11",
     "axios": "^1.4.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-embed": "^3.6.0"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^4.29.9",

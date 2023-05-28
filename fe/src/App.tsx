@@ -9,6 +9,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 
 import { Canvas } from "./Canvas";
+import Embed from "react-embed";
 
 function getCanvases() {
   return axios.get("/api/canvases").then((res) => res.data);

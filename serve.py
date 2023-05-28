@@ -28,7 +28,9 @@ app = FastAPI(openapi_url="/api/openapi.json", docs_url="/api/docs", redoc_url="
 async def add_dummy_data():
     canvas = await add_canvas(CanvasCreate(name="My Canvas"))
     node1 = await add_node(canvas.id, NodeCreate(title="some title.org", contents="My Contents", x=150, y=100, width=300, height=300))
-    node2 = await add_node(canvas.id, NodeCreate(title="another title.org", contents="# More Contents", x=150, y=400, width=300, height=300))    
+    node2 = await add_node(canvas.id, NodeCreate(title="another title.org", contents="# More Contents", x=170, y=450, width=300, height=300))
+    node_website = await add_node(canvas.id, NodeCreate(title="random website", link="https://cpbotha.net/", x=200, y=800, width=300, height=300))
+    node_youtube = await add_node(canvas.id, NodeCreate(title="youtube link", link="https://www.youtube.com/watch?v=rWJ1tPCnVJI", x=550, y=750, width=300, height=300))
 
 @app.on_event("startup")
 async def on_startup():
