@@ -18,21 +18,82 @@ from sqlmodel import Relationship, create_engine, Field, Session, SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 import uvicorn
 
-from models import Canvas, CanvasCreate, CanvasRead, CanvasUpdate, Node, NodeCreate, NodeRead, NodeUpdate, Edge, EdgeCreate, EdgeRead, EdgeUpdate
+from models import (
+    Canvas,
+    CanvasCreate,
+    CanvasRead,
+    CanvasUpdate,
+    Node,
+    NodeCreate,
+    NodeRead,
+    NodeUpdate,
+    Edge,
+    EdgeCreate,
+    EdgeRead,
+    EdgeUpdate,
+)
 
 
 # --------------------------------------------------------------
 
-engine = create_async_engine(f"sqlite+aiosqlite:///blap.db", echo=False, connect_args={"check_same_thread": False})
+engine = create_async_engine(
+    f"sqlite+aiosqlite:///blap.db",
+    echo=False,
+    connect_args={"check_same_thread": False},
+)
 
-app = FastAPI(openapi_url="/api/openapi.json", docs_url="/api/docs", redoc_url="/api/redoc")
+app = FastAPI(
+    openapi_url="/api/openapi.json", docs_url="/api/docs", redoc_url="/api/redoc"
+)
+
 
 async def add_dummy_data():
     canvas = await add_canvas(CanvasCreate(name="My Canvas"))
-    node1 = await add_node(canvas.id, NodeCreate(title="some title.org", contents="My Contents", x=150, y=100, width=300, height=300))
-    node2 = await add_node(canvas.id, NodeCreate(title="another title.org", contents="# More Contents", x=170, y=450, width=300, height=300))
-    node_website = await add_node(canvas.id, NodeCreate(title="random website", link="https://cpbotha.net/", x=200, y=800, width=300, height=300))
-    node_youtube = await add_node(canvas.id, NodeCreate(title="youtube link", link="https://www.youtube.com/watch?v=rWJ1tPCnVJI", x=550, y=750, width=300, height=300))
+    node1 = await add_node(
+        canvas.id,
+        NodeCreate(
+            title="some title.org",
+            contents="My Contents",
+            x=150,
+            y=100,
+            width=300,
+            height=300,
+        ),
+    )
+    node2 = await add_node(
+        canvas.id,
+        NodeCreate(
+            title="another title.org",
+            contents="# More Contents",
+            x=170,
+            y=450,
+            width=300,
+            height=300,
+        ),
+    )
+    node_website = await add_node(
+        canvas.id,
+        NodeCreate(
+            title="random website",
+            link="https://cpbotha.net/",
+            x=200,
+            y=800,
+            width=300,
+            height=300,
+        ),
+    )
+    node_youtube = await add_node(
+        canvas.id,
+        NodeCreate(
+            title="youtube link",
+            link="https://www.youtube.com/watch?v=rWJ1tPCnVJI",
+            x=550,
+            y=750,
+            width=300,
+            height=300,
+        ),
+    )
+
 
 @app.on_event("startup")
 async def on_startup():
@@ -40,9 +101,11 @@ async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    #await add_dummy_data()
+    # await add_dummy_data()
+
 
 router = APIRouter(prefix="/api")
+
 
 @router.get("/canvases", response_model=list[CanvasRead])
 async def get_canvases():
@@ -54,8 +117,7 @@ async def get_canvases():
 
 @router.post("/canvases")
 async def add_canvas(canvas: CanvasCreate):
-    """Add a single canvas to the database.
-    """
+    """Add a single canvas to the database."""
     db_canvas = Canvas.from_orm(canvas)
     async with AsyncSession(engine) as session:
         session.add(db_canvas)
@@ -63,23 +125,28 @@ async def add_canvas(canvas: CanvasCreate):
         await session.refresh(db_canvas)
         return db_canvas
 
+
 @router.get("/canvases/{canvas_id}", response_model=CanvasRead)
 async def get_canvas(canvas_id: int):
-    """Retrieve a single canvas from the database.
-    """
+    """Retrieve a single canvas from the database."""
     async with AsyncSession(engine) as session:
         canvas = await session.get(Canvas, canvas_id)
         if canvas is None:
-            raise HTTPException(status_code=404, detail=f"canvas with id {canvas_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"canvas with id {canvas_id} not found"
+            )
         return canvas
-    
+
+
 # endpoint to update a canvas
 @router.put("/canvases/{canvas_id}", response_model=CanvasRead)
 async def update_canvas(canvas_id: int, canvas: CanvasUpdate):
     async with AsyncSession(engine) as session:
         db_canvas = await session.get(Canvas, canvas_id)
         if db_canvas is None:
-            raise HTTPException(status_code=404, detail=f"canvas with id {canvas_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"canvas with id {canvas_id} not found"
+            )
         canvas_data = canvas.dict(exclude_unset=True)
         for key, value in canvas_data.items():
             setattr(db_canvas, key, value)
@@ -89,9 +156,11 @@ async def update_canvas(canvas_id: int, canvas: CanvasUpdate):
         await session.commit()
         await session.refresh(db_canvas)
         return db_canvas
-    
+
+
 # --------------------------------------------------------------
 # path functions for all the nodes
+
 
 @router.get("/canvases/{canvas_id}/nodes", response_model=list[NodeRead])
 async def get_nodes(canvas_id: int):
@@ -99,11 +168,11 @@ async def get_nodes(canvas_id: int):
         result = await session.execute(select(Node).filter(Node.canvas_id == canvas_id))
         nodes = result.scalars().all()
         return nodes
-    
+
+
 @router.post("/canvases/{canvas_id}/nodes")
 async def add_node(canvas_id: int, node: NodeCreate):
-    """Add a node to the canvas.
-    """
+    """Add a node to the canvas."""
     db_node = Node.from_orm(node)
     db_node.canvas_id = canvas_id
     async with AsyncSession(engine) as session:
@@ -111,25 +180,29 @@ async def add_node(canvas_id: int, node: NodeCreate):
         await session.commit()
         await session.refresh(db_node)
         return db_node
-    
+
+
 @router.get("/nodes/{node_id}", response_model=NodeRead)
 async def get_node(node_id: int):
-    """Retrieve a node by ID.
-    """
+    """Retrieve a node by ID."""
     async with AsyncSession(engine) as session:
         node = await session.get(Node, node_id)
         if node is None:
-            raise HTTPException(status_code=404, detail=f"node with id {node_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"node with id {node_id} not found"
+            )
         return node
-    
+
+
 @router.put("/nodes/{node_id}", response_model=NodeRead)
 async def update_node(node_id: int, node: NodeUpdate):
-    """Update a node by ID.
-    """
+    """Update a node by ID."""
     async with AsyncSession(engine) as session:
         db_node = await session.get(Node, node_id)
         if db_node is None:
-            raise HTTPException(status_code=404, detail=f"node with id {node_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"node with id {node_id} not found"
+            )
         node_data = node.dict(exclude_unset=True)
         for key, value in node_data.items():
             setattr(db_node, key, value)
@@ -137,9 +210,11 @@ async def update_node(node_id: int, node: NodeUpdate):
         await session.commit()
         await session.refresh(db_node)
         return db_node
-    
+
+
 # --------------------------------------------------------------
 # path functions for all the edges
+
 
 @router.get("/canvases/{canvas_id}/edges", response_model=list[EdgeRead])
 async def get_edges(canvas_id: int):
@@ -151,8 +226,7 @@ async def get_edges(canvas_id: int):
 
 @router.post("/canvases/{canvas_id}/edges")
 async def add_edge(canvas_id: int, edge: EdgeCreate):
-    """Add an edge to the canvas.
-    """
+    """Add an edge to the canvas."""
     db_edge = Edge.from_orm(edge)
     db_edge.canvas_id = canvas_id
     async with AsyncSession(engine) as session:
@@ -161,24 +235,28 @@ async def add_edge(canvas_id: int, edge: EdgeCreate):
         await session.refresh(db_edge)
         return db_edge
 
+
 @router.get("/edges/{edge_id}", response_model=EdgeRead)
 async def get_edge(edge_id: int):
-    """Retrieve an edge by ID.
-    """
+    """Retrieve an edge by ID."""
     async with AsyncSession(engine) as session:
         edge = await session.get(Edge, edge_id)
         if edge is None:
-            raise HTTPException(status_code=404, detail=f"edge with id {edge_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"edge with id {edge_id} not found"
+            )
         return edge
-    
+
+
 @router.put("/edges/{edge_id}", response_model=EdgeRead)
 async def update_edge(edge_id: int, edge: EdgeUpdate):
-    """Update an edge by ID.
-    """
+    """Update an edge by ID."""
     async with AsyncSession(engine) as session:
         db_edge = await session.get(Edge, edge_id)
         if db_edge is None:
-            raise HTTPException(status_code=404, detail=f"edge with id {edge_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"edge with id {edge_id} not found"
+            )
         edge_data = edge.dict(exclude_unset=True)
         for key, value in edge_data.items():
             setattr(db_edge, key, value)
@@ -187,21 +265,36 @@ async def update_edge(edge_id: int, edge: EdgeUpdate):
         await session.refresh(db_edge)
         return db_edge
 
+
+def clean_emacs_string_output(output: str) -> str:
+    """Clean up the output from emacsclient."""
+    # emacsclient --eval executed via subprocess.run returns function output as string representation of the actual return value
+    # for emacs strings, we get e.g. '"hello\nworld"' - literal " and literal \n (slash-n)
+    # a list will come back slightly better, e.g. '(42 45)'
+    # also replace literal \\ with single \, which will resolve remaining \\" to \"
+    # sure there's a better way?!
+    s1 = output.replace(r"\n", "\n").replace(r"\\", "\\").strip()
+    assert (
+        s1[0] == '"' and s1[-1] == '"'
+    ), 'emacs output should start and end with literal "'
+    return s1[1:-1]
+
+
 # we get literal "s back at start and finish of return
 # also, what happens with \n is hard to predict
 # so here we choose for |---| as separator
 EL_SEP = "|---|"
-ELISP_SN = f'''
+ELISP_SN = f"""
 (progn
   (org-roam-node-find)
   (let ((node (org-roam-node-at-point)))
     (format "{EL_SEP}id:%s{EL_SEP}title:%s{EL_SEP}file:%s{EL_SEP}" (org-roam-node-id node) (org-roam-node-title node) (org-roam-node-file node)))
-)'''
+)"""
+
 
 @router.get("/or-node-select")
 def select_node():
-    """Find an org-roam node interactively.
-    """
+    """Find an org-roam node interactively."""
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
     ret = subprocess.run(["emacsclient", "-c", "--eval", ELISP_SN], capture_output=True)
     output = ret.stdout.decode("utf-8")
@@ -216,13 +309,55 @@ def select_node():
     else:
         return output_dict
 
+
+# this code gives me actual newlines in emacs, but here they render as literal \n
+ELISP_GND = """
+(let ((fnpos (org-roam-id-find "{node_id}")))
+  (when fnpos
+    (with-temp-buffer
+      (insert-file-contents (car fnpos))
+      (goto-char (cdr fnpos))
+      (let* ((node (org-roam-node-at-point))
+             (html (org-export-as 'html (org-at-heading-p) nil nil))
+             (start (cl-search "<body>" html))
+             (end (cl-search "</body>" html))
+             (body (substring html (+ start 6) end)))
+        (format "title:%s
+file:%s
+%s" (org-roam-node-title node) (org-roam-node-file node) body)
+        ))))
+"""
+
+
 @router.get("/or-node/{or_node_id}")
-def get_or_node_details(or_node_id: int):
-    """Given an org-roam node ID, find its title and contents.
-    """
+def get_or_node_details(or_node_id: str):
+    """Given an org-roam node ID, find its title and contents."""
 
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
-    subprocess.run(["emacsclient", "-c", "--eval", f"(org-roam-node--find-by-id {or_node_id})"], capture_output=True)
+    ret = subprocess.run(
+        ["emacsclient", "--eval", ELISP_GND.format(node_id=or_node_id)],
+        capture_output=True,
+        text=True,
+    )
+    if ret.stderr:
+        raise HTTPException(status_code=404, detail=ret.stderr)
+
+    output = clean_emacs_string_output(ret.stdout)
+    lines = output.split("\n")
+    output_dict = {}
+    if mo_t := re.match("title:(.+)", lines[0]):
+        output_dict["title"] = mo_t.group(1)
+
+        if mo_f := re.match("file:(.+)", lines[1]):
+            output_dict["file"] = mo_f.group(1)
+
+            output_dict["html"] = "\n".join(lines[2:])
+
+            return output_dict
+
+    else:
+        raise HTTPException(status_code=404, detail="No node found")
+
 
 # have to include router after all the decorators are defined
 app.include_router(router)
