@@ -266,18 +266,54 @@ async def update_edge(edge_id: int, edge: EdgeUpdate):
         return db_edge
 
 
-def clean_emacs_string_output(output: str) -> str:
-    """Clean up the output from emacsclient."""
-    # emacsclient --eval executed via subprocess.run returns function output as string representation of the actual return value
-    # for emacs strings, we get e.g. '"hello\nworld"' - literal " and literal \n (slash-n)
-    # a list will come back slightly better, e.g. '(42 45)'
-    # also replace literal \\ with single \, which will resolve remaining \\" to \"
-    # sure there's a better way?!
-    s1 = output.replace(r"\n", "\n").replace(r"\\", "\\").strip()
-    assert (
-        s1[0] == '"' and s1[-1] == '"'
-    ), 'emacs output should start and end with literal "'
-    return s1[1:-1]
+# had to add the 4MB END to limit the size of stdin we're reading in
+# surprising, because it was not always necessary
+# see my comment: https://www.reddit.com/r/emacs/comments/asil1y/comment/jm3r2a6/
+ELISP_UNQUOTE = '(progn (insert-file-contents "/dev/stdin" nil nil 4000000) (princ (read (buffer-string))))'
+
+
+def unquote_emacsclient_eval_output(output: str) -> str:
+    """Clean up the output from emacsclient.
+
+    Notes
+    -----
+    - This solution:
+      https://www.reddit.com/r/emacs/comments/asil1y/comment/eguo08l/
+      https://emacs.stackexchange.com/a/28668/8743
+    - More context on why emacsclient --eval is quoting its output:
+      https://github.com/grettke/ebse
+    """
+
+    ret = subprocess.run(
+        ["emacs", "-Q", "--batch", "--eval", ELISP_UNQUOTE],
+        capture_output=True,
+        text=True,
+        input=output,
+    )
+    if ret.stderr:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unable to unquote emacsclient output using emacs --batch: {ret.stderr}",
+        )
+    else:
+        return ret.stdout
+
+
+def ask_emacs(elisp: str, create_frame=False) -> str:
+    """Ask emacsclient to evaluate elisp and return the result as unquoted string."""
+    # no-wait means we get the value as soon as available, frame will stick around
+    # without no-wait, user has to close emacs before we get value
+    cmd = ["emacsclient"]
+    if create_frame:
+        cmd.append("-c")
+
+    cmd.extend(["--no-wait", "--eval", elisp])
+
+    ret = subprocess.run(cmd, capture_output=True, text=True)
+    if ret.stderr:
+        raise HTTPException(status_code=404, detail=ret.stderr)
+
+    return unquote_emacsclient_eval_output(ret.stdout)
 
 
 # we get literal "s back at start and finish of return
@@ -296,8 +332,9 @@ ELISP_SN = f"""
 def select_node():
     """Find an org-roam node interactively."""
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
-    ret = subprocess.run(["emacsclient", "-c", "--eval", ELISP_SN], capture_output=True)
-    output = ret.stdout.decode("utf-8")
+    # TODO: update this old code to shiny new ask_emacs()
+    # ret = subprocess.run(["emacsclient", "-c", "--eval", ELISP_SN], capture_output=True)
+    output = ask_emacs(ELISP_SN, create_frame=True)
 
     output_dict = {}
     for elem in output.split(EL_SEP):
@@ -334,15 +371,8 @@ def get_or_node_details(or_node_id: str):
     """Given an org-roam node ID, find its title and contents."""
 
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
-    ret = subprocess.run(
-        ["emacsclient", "--eval", ELISP_GND.format(node_id=or_node_id)],
-        capture_output=True,
-        text=True,
-    )
-    if ret.stderr:
-        raise HTTPException(status_code=404, detail=ret.stderr)
+    output = ask_emacs(ELISP_GND.format(node_id=or_node_id))
 
-    output = clean_emacs_string_output(ret.stdout)
     lines = output.split("\n")
     output_dict = {}
     if mo_t := re.match("title:(.+)", lines[0]):
