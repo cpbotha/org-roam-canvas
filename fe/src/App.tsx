@@ -18,6 +18,14 @@ function getCanvases() {
 function App() {
   // TODO: fix initial canvas selection later
   const [canvasId, setCanvasId] = useState(1);
+  const [newOrgNodeId, setNewOrgNodeId] = useState<string | null>(null);
+
+  async function addOrgNode() {
+    const ret = await axios.get("/api/or-node-select");
+    if (ret.data?.id) {
+      setNewOrgNodeId(ret.data.id);
+    }
+  }
 
   const { isLoading, error, data, isFetching } = useQuery({
     queryKey: ["canvases"],
@@ -36,7 +44,7 @@ function App() {
 
   return (
     <>
-      <div>navigation</div>
+      <div>paradigm desktop | tabletops8 | org-roam-canvas</div>
       <div id="top-level">
         {/* need preserve-3d so that all child nodes are transformed relative to the parent,
               only one level deep! */}
@@ -55,23 +63,20 @@ function App() {
               transform: "scale(1, 1)",
             }}
           >
-            <Canvas canvasId={canvasId} />
+            <Canvas
+              canvasId={canvasId}
+              newOrgNodeId={newOrgNodeId}
+              setNewOrgNodeId={setNewOrgNodeId}
+            />
             {/* need position absolute to put all of these divs at the same place
                       then transforms will all be relative to that --> */}
-            <div
-              className="thing"
-              id="img-upload"
-              style={{
-                position: "absolute",
-                top: "0px",
-                left: "0px",
-                border: "1px solid black",
-                transform: "translate(300px, 300px)",
-              }}
-            >
-              Hello dere!
-            </div>
           </div>
+          <button
+            style={{ position: "absolute", top: "1em", left: "1em" }}
+            onClick={addOrgNode}
+          >
+            org
+          </button>
         </div>
       </div>
     </>

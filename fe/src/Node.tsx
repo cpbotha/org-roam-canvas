@@ -8,8 +8,8 @@ export interface INode {
   link?: string;
   x: number;
   y: number;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   colour?: string | null;
   canvas_id?: number | null;
   id?: number | null;
