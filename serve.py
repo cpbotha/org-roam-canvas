@@ -366,7 +366,7 @@ file:%s
 """
 
 
-@router.get("/or-node/{or_node_id}")
+@router.get("/or-nodes/{or_node_id}")
 def get_or_node_details(or_node_id: str):
     """Given an org-roam node ID, find its title and contents."""
 
