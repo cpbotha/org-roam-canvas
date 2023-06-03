@@ -20,7 +20,7 @@ export function Canvas(props: {
     data: nodes,
     isFetching,
   } = useQuery({
-    queryKey: ["nodes", props.canvasId],
+    queryKey: ["canvases", props.canvasId, "nodes"],
     queryFn: () => getNodes(props.canvasId),
   });
 
