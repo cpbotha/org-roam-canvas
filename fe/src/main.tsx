@@ -10,7 +10,11 @@ import {
 import App from "./App.tsx";
 import "./index.css";
 
-const queryClient = new QueryClient();
+// set default staleTime to 20s
+// https://tkdodo.eu/blog/react-query-as-a-state-manager
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 1000 * 20 } },
+});
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

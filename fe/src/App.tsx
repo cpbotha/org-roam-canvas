@@ -15,7 +15,7 @@ function getCanvases() {
   return axios.get("/api/canvases").then((res) => res.data);
 }
 
-function App() {
+function App(): JSX.Element {
   // TODO: fix initial canvas selection later
   const [canvasId, setCanvasId] = useState(1);
   const [newOrgNodeId, setNewOrgNodeId] = useState<string | null>(null);

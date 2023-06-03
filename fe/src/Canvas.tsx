@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-
 import { useMutation, useQuery } from "@tanstack/react-query";
-
 import axios from "axios";
-import { INode, Node } from "./Node";
+import { useEffect } from "react";
+
+import { Node } from "./Node";
+import { INode } from "./types";
 
 function getNodes(canvasId: number): Promise<INode[]> {
   return axios.get(`/api/canvases/${canvasId}/nodes`).then((res) => res.data);

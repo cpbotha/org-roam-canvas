@@ -1,27 +1,16 @@
 // TODO: oembed, react-iframe, etc.
 // react-embed is quite out of date :(
 
-import Embed, { route } from "react-embed";
-
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-
 import htmr from "htmr";
-import "./Node.css";
+import { useState } from "react";
+import Draggable from "react-draggable";
+import Embed from "react-embed";
+import { ResizableBox } from "react-resizable";
 
-export interface INode {
-  title: string;
-  contents?: string;
-  link?: string;
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-  colour?: string | null;
-  canvas_id?: number | null;
-  id?: number | null;
-  created_at?: Date | null;
-}
+import "./Node.css";
+import { INode } from "./types";
 
 interface IOrgNodeDetails {
   file: string;
@@ -33,7 +22,7 @@ function getOrgNodeDetails(orgId: string): Promise<IOrgNodeDetails> {
   return axios.get(`/api/or-nodes/${orgId}`).then((res) => res.data);
 }
 
-function RenderOrgNode(props: { orgId: string }) {
+function RenderOrgNode(props: { orgId: string }): JSX.Element {
   const { orgId } = props;
 
   const { data: orgNodeDetails } = useQuery({
@@ -78,28 +67,59 @@ function RenderNodeNonEmbed(props: { node: INode }) {
 export function Node(props: { node: INode }) {
   const { node } = props;
 
+  const [width, setWidth] = useState(node.width);
+  const [height, setHeight] = useState(node.height);
+
   // Embed only does the sites and filetypes it explicitly supports
   // for other websites, we should try a fallback
   //node.link = "https://soundcloud.com/kink/mechtaya";
 
+  // manual transform
+  // style.transform: `translate(${node.x}px, ${node.y}px)`,
+  // with react-draggable, CSS transform of child is updated
   return (
-    <div
-      className="node"
-      style={{
-        width: `${node.width}px`,
-        height: `${node.height}px`,
-        transform: `translate(${node.x}px, ${node.y}px)`,
-      }}
+    <Draggable
+      defaultClassName="node"
+      defaultPosition={{ x: node.x, y: node.y }}
+      handle=".handle"
+      cancel={".react-resizable-handle"}
     >
-      {node.title}
-      {node.link && (
-        <Embed
-          url={node.link}
-          renderVoid={(props, state, error) => (
-            <RenderNodeNonEmbed node={node} />
-          )}
-        />
-      )}
-    </div>
+      <ResizableBox
+        width={width}
+        height={height}
+        onResize={(event, { node, size, handle }) => {
+          setWidth(size.width);
+          setHeight(size.height);
+        }}
+      >
+        <div
+          className="node-NOT"
+          style={{
+            width: `${width}px`,
+            height: `${height}px`,
+          }}
+        >
+          <div className="handle" style={{ background: "lightgrey" }}>
+            {node.title}
+          </div>
+          <div
+            style={{
+              overflow: "auto",
+              height: "calc(100% - 2em)",
+              width: "100%",
+            }}
+          >
+            {node.link && (
+              <Embed
+                url={node.link}
+                renderVoid={(props, state, error) => (
+                  <RenderNodeNonEmbed node={node} />
+                )}
+              />
+            )}
+          </div>
+        </div>
+      </ResizableBox>
+    </Draggable>
   );
 }
