@@ -194,7 +194,7 @@ async def get_node(node_id: int):
         return node
 
 
-@router.put("/nodes/{node_id}", response_model=NodeRead)
+@router.patch("/nodes/{node_id}", response_model=NodeRead)
 async def update_node(node_id: int, node: NodeUpdate):
     """Update a node by ID."""
     async with AsyncSession(engine) as session:
@@ -206,7 +206,8 @@ async def update_node(node_id: int, node: NodeUpdate):
         node_data = node.dict(exclude_unset=True)
         for key, value in node_data.items():
             setattr(db_node, key, value)
-        await session.add(db_node)
+
+        session.add(db_node)
         await session.commit()
         await session.refresh(db_node)
         return db_node
