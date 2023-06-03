@@ -11,6 +11,7 @@ import { ResizableBox } from "react-resizable";
 
 import "./Node.css";
 import { INode } from "./types";
+import { useUpdateNode } from "./hooks";
 
 interface IOrgNodeDetails {
   file: string;
@@ -70,6 +71,9 @@ export function Node(props: { node: INode }) {
   const [width, setWidth] = useState(node.width);
   const [height, setHeight] = useState(node.height);
 
+  // TODO: using id of -1 which will error out on PATCH which is a work-around to handle the state of having no id yet
+  const { mutate: updateNode } = useUpdateNode(node.id ?? -1);
+
   // Embed only does the sites and filetypes it explicitly supports
   // for other websites, we should try a fallback
   //node.link = "https://soundcloud.com/kink/mechtaya";
@@ -83,6 +87,9 @@ export function Node(props: { node: INode }) {
       defaultPosition={{ x: node.x, y: node.y }}
       handle=".handle"
       cancel={".react-resizable-handle"}
+      onStop={(event, data) => {
+        updateNode({ x: data.x, y: data.y });
+      }}
     >
       <ResizableBox
         width={width}
@@ -90,6 +97,9 @@ export function Node(props: { node: INode }) {
         onResize={(event, { node, size, handle }) => {
           setWidth(size.width);
           setHeight(size.height);
+        }}
+        onResizeStop={(event, { node, size, handle }) => {
+          updateNode({ width: size.width, height: size.height });
         }}
       >
         <div
