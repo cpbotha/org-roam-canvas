@@ -10,6 +10,8 @@ import re
 import subprocess
 from typing import List, Optional
 from pathlib import Path
+import logging
+from threading import Lock
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from sqlalchemy import select, Column, DateTime
@@ -33,7 +35,7 @@ from models import (
     EdgeUpdate,
 )
 
-
+mutex = Lock()
 # --------------------------------------------------------------
 
 engine = create_async_engine(
@@ -302,19 +304,27 @@ def unquote_emacsclient_eval_output(output: str) -> str:
 
 def ask_emacs(elisp: str, create_frame=False) -> str:
     """Ask emacsclient to evaluate elisp and return the result as unquoted string."""
+
     # no-wait means we get the value as soon as available, frame will stick around
     # without no-wait, user has to close emacs before we get value
     cmd = ["emacsclient"]
     if create_frame:
         cmd.append("-c")
+        cmd.append("--no-wait")
 
-    cmd.extend(["--no-wait", "--eval", elisp])
+    cmd.extend(["--eval", elisp])
 
-    ret = subprocess.run(cmd, capture_output=True, text=True)
+    # serialize access to emacs, else we would often get empty output when searching for a node id
+    with mutex:
+        ret = subprocess.run(cmd, capture_output=True, text=True)
+
     if ret.stderr:
         raise HTTPException(status_code=404, detail=ret.stderr)
 
-    return unquote_emacsclient_eval_output(ret.stdout)
+    unquoted = unquote_emacsclient_eval_output(ret.stdout)
+    if unquoted == "nil":
+        logging.error(f"ask_emacs error: elisp -> {ret.stdout} -> {unquoted}")
+    return unquoted
 
 
 # we get literal "s back at start and finish of return
@@ -349,8 +359,7 @@ def select_node():
 
 
 # this code gives me actual newlines in emacs, but here they render as literal \n
-ELISP_GND = """
-(let ((fnpos (org-roam-id-find "{node_id}")))
+ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (with-temp-buffer
       (insert-file-contents (car fnpos))
@@ -387,6 +396,7 @@ def get_or_node_details(or_node_id: str):
             return output_dict
 
     else:
+        logging.error(f"Unable to parse output from emacsclient: {output}")
         raise HTTPException(status_code=404, detail="No node found")
 
 
