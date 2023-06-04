@@ -356,8 +356,8 @@ def select_node():
         return output_dict
 
 
-# this code gives me actual newlines in emacs, but here they render as literal \n
-ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
+# old style: full document, search and return <body> only
+ELISP_GND_OLD = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (with-temp-buffer
       (insert-file-contents (car fnpos))
@@ -370,6 +370,20 @@ ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
         (format "title:%s
 file:%s
 %s" (org-roam-node-title node) (org-roam-node-file node) body)
+        ))))
+"""
+
+# new style: tell emacs to do a body-only export
+ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
+  (when fnpos
+    (with-temp-buffer
+      (insert-file-contents (car fnpos))
+      (goto-char (cdr fnpos))
+      (let* ((node (org-roam-node-at-point))
+             (html (org-export-as 'html (org-at-heading-p) nil t)))
+        (format "title:%s
+file:%s
+%s" (org-roam-node-title node) (org-roam-node-file node) html)
         ))))
 """
 
