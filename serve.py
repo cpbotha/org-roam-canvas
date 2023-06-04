@@ -343,8 +343,6 @@ ELISP_SN = f"""
 def select_node():
     """Find an org-roam node interactively."""
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
-    # TODO: update this old code to shiny new ask_emacs()
-    # ret = subprocess.run(["emacsclient", "-c", "--eval", ELISP_SN], capture_output=True)
     output = ask_emacs(ELISP_SN, create_frame=True)
 
     output_dict = {}
