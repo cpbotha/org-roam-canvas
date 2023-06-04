@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
+
 import "./App.css";
 import { Canvas } from "./Canvas";
 import { useAddNode } from "./hooks";
+import { ICanvas } from "./types";
 
-function getCanvases() {
+function getCanvases(): Promise<ICanvas[]> {
   return axios.get("/api/canvases").then((res) => res.data);
 }
 
@@ -28,24 +30,34 @@ function App(): JSX.Element {
     }
   }
 
-  const { isLoading, error, data, isFetching } = useQuery({
+  const {
+    isLoading,
+    error,
+    data: canvases,
+    isFetching,
+  } = useQuery({
     queryKey: ["canvases"],
     queryFn: getCanvases,
   });
 
-  if (isLoading) return "Loading...";
+  if (isLoading) return <div>Loading...</div>;
 
   if (error) {
-    if (error instanceof Error) {
-      return "Unable to load canvases: " + error.message;
-    } else {
-      return "Unable to fetch canvases";
-    }
+    const msg =
+      error instanceof Error
+        ? "Unable to load canvases: " + error.message
+        : "Unable to fetch canvases";
+    return <div>{msg}</div>;
+  }
+
+  const canvas = canvases?.find((canvas: any) => canvas.id === canvasId);
+  if (!canvas) {
+    return <div>Unable to find canvas with id {canvasId}</div>;
   }
 
   return (
     <>
-      <div>paradigm desktop | tabletops8 | org-roam-canvas</div>
+      <div>org-roam-canvas | {canvas.name}</div>
       <div id="top-level">
         {/* need preserve-3d so that all child nodes are transformed relative to the parent,
               only one level deep! */}

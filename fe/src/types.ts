@@ -1,3 +1,9 @@
+export interface ICanvas {
+  id: number;
+  name: string;
+  created_at: Date | null;
+}
+
 export interface INode {
   title: string;
   contents?: string;
