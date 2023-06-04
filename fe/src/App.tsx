@@ -1,15 +1,9 @@
-import { useState } from "react";
-
 import { useQuery } from "@tanstack/react-query";
-
 import axios from "axios";
-
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useState } from "react";
 import "./App.css";
-
 import { Canvas } from "./Canvas";
-import Embed from "react-embed";
+import { useAddNode } from "./hooks";
 
 function getCanvases() {
   return axios.get("/api/canvases").then((res) => res.data);
@@ -18,12 +12,19 @@ function getCanvases() {
 function App(): JSX.Element {
   // TODO: fix initial canvas selection later
   const [canvasId, setCanvasId] = useState(1);
-  const [newOrgNodeId, setNewOrgNodeId] = useState<string | null>(null);
+
+  const { mutate: addNode } = useAddNode(canvasId);
 
   async function addOrgNode() {
     const ret = await axios.get("/api/or-node-select");
     if (ret.data?.id) {
-      setNewOrgNodeId(ret.data.id);
+      // see https://www.orgroam.com/manual.html#org_002droam_002dprotocol
+      addNode({
+        title: "my first note",
+        link: `org-protocol://roam-node?node=${ret.data.id}`,
+        x: 400,
+        y: 400,
+      });
     }
   }
 
@@ -63,11 +64,7 @@ function App(): JSX.Element {
               transform: "scale(1, 1)",
             }}
           >
-            <Canvas
-              canvasId={canvasId}
-              newOrgNodeId={newOrgNodeId}
-              setNewOrgNodeId={setNewOrgNodeId}
-            />
+            <Canvas canvasId={canvasId} />
             {/* need position absolute to put all of these divs at the same place
                       then transforms will all be relative to that --> */}
           </div>

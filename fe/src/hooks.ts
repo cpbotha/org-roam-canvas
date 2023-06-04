@@ -3,6 +3,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { INode } from "./types";
 
+export const useAddNode = (canvasId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newNode: INode) =>
+      axios
+        .post(`/api/canvases/${canvasId}/nodes`, newNode)
+        .then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["canvases", canvasId, "nodes"],
+      });
+    },
+  });
+};
+
 //
 export const useUpdateNode = (nodeId: number) => {
   const queryClient = useQueryClient();
