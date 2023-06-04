@@ -11,6 +11,17 @@ function getCanvases(): Promise<ICanvas[]> {
   return axios.get("/api/canvases").then((res) => res.data);
 }
 
+function basename(path: string): string {
+  // Remove trailing slashes and backslashes
+  const trimmedPath = path.replace(/[\\/]+$/, "");
+
+  // Get the last segment after splitting by slashes
+  const segments = trimmedPath.split(/[\\/]/);
+  let filename = segments[segments.length - 1];
+
+  return filename;
+}
+
 function App(): JSX.Element {
   // TODO: fix initial canvas selection later
   const [canvasId, setCanvasId] = useState(1);
@@ -22,7 +33,7 @@ function App(): JSX.Element {
     if (ret.data?.id) {
       // see https://www.orgroam.com/manual.html#org_002droam_002dprotocol
       addNode({
-        title: "my first note",
+        title: basename(ret.data.file),
         link: `org-protocol://roam-node?node=${ret.data.id}`,
         x: 400,
         y: 400,
