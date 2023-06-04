@@ -6,6 +6,12 @@
   border: 2px solid steelblue;
 }
 
+.node .titleBar {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .react-resizable {
   /* position: relative; */
 }

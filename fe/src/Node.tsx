@@ -85,7 +85,7 @@ export function Node(props: { node: INode }) {
     <Draggable
       defaultClassName="node"
       defaultPosition={{ x: node.x, y: node.y }}
-      handle=".handle"
+      handle=".titleBar"
       cancel={".react-resizable-handle"}
       onStop={(event, data) => {
         updateNode({ x: data.x, y: data.y });
@@ -109,7 +109,7 @@ export function Node(props: { node: INode }) {
             height: `${height}px`,
           }}
         >
-          <div className="handle" style={{ background: "lightgrey" }}>
+          <div className="titleBar" style={{ background: "lightgrey" }}>
             {node.title}
           </div>
           <div
