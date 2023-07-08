@@ -5,35 +5,34 @@
 
 # https://emacs.stackexchange.com/questions/28665/print-unquoted-output-to-stdout-from-emacsclient
 
-from datetime import datetime
+import logging
 import re
 import subprocess
-from typing import List, Optional
+import tempfile
 from pathlib import Path
-import logging
 from threading import Lock
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select, Column, DateTime
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import Relationship, create_engine, Field, Session, SQLModel
-from sqlmodel.ext.asyncio.session import AsyncSession
 import uvicorn
+from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models import (
     Canvas,
     CanvasCreate,
     CanvasRead,
     CanvasUpdate,
-    Node,
-    NodeCreate,
-    NodeRead,
-    NodeUpdate,
     Edge,
     EdgeCreate,
     EdgeRead,
     EdgeUpdate,
+    Node,
+    NodeCreate,
+    NodeRead,
+    NodeUpdate,
 )
 from utils import rewrite_links
 
