@@ -12,6 +12,11 @@
   white-space: nowrap;
 }
 
+.node .figure img {
+  /* width: 100%; */
+  max-width: 100%;
+}
+
 .react-resizable {
   /* position: relative; */
 }
