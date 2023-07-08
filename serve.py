@@ -277,7 +277,7 @@ ELISP_UNQUOTE = '(progn (insert-file-contents "/dev/stdin" nil nil 4000000) (pri
 
 
 def unquote_emacsclient_eval_output(output: str) -> str:
-    """Clean up the output from emacsclient.
+    """Clean up the stdout output from emacsclient.
 
     Notes
     -----
@@ -313,19 +313,24 @@ def ask_emacs(elisp: str, create_frame=False) -> str:
         cmd.append("-c")
         cmd.append("--no-wait")
 
-    cmd.extend(["--eval", elisp])
+    with tempfile.NamedTemporaryFile() as tmp:
+        cmd.extend(["--eval", f'(write-region {elisp} nil "{tmp.name}")'])
 
-    # serialize access to emacs, else we would often get empty output when searching for a node id
-    with mutex:
-        ret = subprocess.run(cmd, capture_output=True, text=True)
+        # serialize access to emacs, else we would often get empty output when searching for a node id
+        with mutex:
+            ret = subprocess.run(cmd, capture_output=True, text=True)
 
-    if ret.stderr:
-        raise HTTPException(status_code=404, detail=ret.stderr)
+        if ret.stderr:
+            raise HTTPException(status_code=404, detail=ret.stderr)
 
-    unquoted = unquote_emacsclient_eval_output(ret.stdout)
-    if unquoted == "nil":
-        logging.error(f"ask_emacs error: elisp -> {ret.stdout} -> {unquoted}")
-    return unquoted
+        # when going via stdout, we would have to do this special emacs unquote
+        # but now we're writing emacs output to tempfile, so unquoting not required
+        # unquoted = unquote_emacsclient_eval_output(ret.stdout)
+        # if unquoted == "nil":
+        #     logging.error(f"ask_emacs error: elisp -> {ret.stdout} -> {unquoted}")
+        #     raise HTTPException(status_code=404, detail="emacsclient returned nil")
+
+        return tmp.read().decode("utf-8")
 
 
 # we get literal "s back at start and finish of return
