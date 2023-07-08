@@ -3,7 +3,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import htmr from "htmr";
 import { useState } from "react";
 import Draggable from "react-draggable";
 import Embed from "react-embed";
@@ -31,9 +30,12 @@ function RenderOrgNode(props: { orgId: string }): JSX.Element {
     queryFn: () => getOrgNodeDetails(orgId),
   });
 
-  // todo: htmr
-  if (orgNodeDetails) {
-    return htmr(orgNodeDetails.html);
+  if (orgNodeDetails?.html) {
+    // htmr refused to render much of the html returned by the backend, so we're doing dangerouslySetInnerHTML
+    // this is all the user's own orgmode, so it's less of a security risk
+    return <div dangerouslySetInnerHTML={{ __html: orgNodeDetails.html }} />;
+    //return htmr(`<h2>${orgNodeDetails.title}</h2>`);
+    //return <div>{orgNodeDetails.title}</div>;
   }
   return <div>HELLO Org node: {orgId}</div>;
 }
