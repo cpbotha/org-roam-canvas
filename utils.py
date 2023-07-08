@@ -31,6 +31,14 @@ def _rewrite_link(link: str, dir: Path) -> str:
 
 
 def rewrite_links(html: str, dir: Path):
+    """
+    Rewrite links in HTML to point to local files in the orc-files directory.
+
+    Parameters
+    ----------
+    dir : Path
+        Path to the directory containing the org / HTML file.
+    """
     soup = BeautifulSoup(html, "html.parser")
 
     num_rewrote = 0
@@ -44,3 +52,4 @@ def rewrite_links(html: str, dir: Path):
                 num_rewrote += 1
 
     return str(soup) if num_rewrote > 0 else html
+
