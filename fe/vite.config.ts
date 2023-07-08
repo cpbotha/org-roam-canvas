@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
       "/api": "http://localhost:8000",
+      "/orc-files": "http://localhost:8000",
     },
     // https: {
     //   key: "../localhost-key.pem",
