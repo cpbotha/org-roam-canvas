@@ -14,6 +14,7 @@ import logging
 from threading import Lock
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, Column, DateTime
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import Relationship, create_engine, Field, Session, SQLModel
@@ -34,6 +35,7 @@ from models import (
     EdgeRead,
     EdgeUpdate,
 )
+from utils import rewrite_links
 
 mutex = Lock()
 # --------------------------------------------------------------
@@ -401,9 +403,12 @@ def get_or_node_details(or_node_id: str):
         output_dict["title"] = mo_t.group(1)
 
         if mo_f := re.match("file:(.+)", lines[1]):
-            output_dict["file"] = mo_f.group(1)
+            output_dict["file"] = fn = mo_f.group(1)
 
-            output_dict["html"] = "\n".join(lines[2:])
+            html = "\n".join(lines[2:])
+
+            # rewrite local links in the html
+            output_dict["html"] = rewrite_links(html, Path(fn).parent)
 
             return output_dict
 
@@ -414,6 +419,7 @@ def get_or_node_details(or_node_id: str):
 
 # have to include router after all the decorators are defined
 app.include_router(router)
+app.mount("/orc-files", StaticFiles(directory="/"), name="orc-files")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
