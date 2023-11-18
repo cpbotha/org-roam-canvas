@@ -1,13 +1,34 @@
-# org-roam-canvas PROTOTYPE
+# org-roam-canvas
 
-Half-working prototype for serving HTML exports of org-roam nodes so that the frontend can show them on an infinite canvas.
+Render Emacs org-roam nodes on your Obsidian Canvas!
+
+This is a FastAPI server which talks to a running Emacs process via `emacsclient` and offers the following endpoints:
+
+- http://localhost:3813/select/ - pop up Emacs so that user can select org-roam node, then show the node detail (HTML) link which user can drag-and-drop onto the obsidian canvas
+- http://localhost:3813/node/?id=NODE_ID - abovementioned node detail link which returns HTML version of the org-roam node. This is embedded by Obsidian
+- http://localhost:3813/orc-files/FULL_FILE_PATH - links are rewritten so that rendered and embedded HTML nodes can load attachments
+- http://localhost:3813/os-open/?filename=FULL_FILE_PATH - so that embedded HTML nodes can link back to the source files. When clicked, system will open org file with registered app, which should be Emacs
+
+In other words:
+
+1. Click on the select link above
+2. Select and org-roam node
+3. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
+
+## Screenshot(s)
+
+![](screenshots/20231118-org-roam-canvas-demo.jpg)
+
+## DEPRECATED prototype: backend and canvas rendering frontend
+
+This started as a half-working prototype for serving HTML exports of org-roam nodes so that the frontend can show them on an infinite canvas.
 
 What worked:
 
 - fastapi backend talking to emacs via emacsclient
 - frontend to render HTML versions of org-roam nodes on an infinite canvas
 
-## Development setup
+### Development setup
 
 During development, we
 
