@@ -1,3 +1,12 @@
+# org-roam-canvas PROTOTYPE
+
+Half-working prototype for serving HTML exports of org-roam nodes so that the frontend can show them on an infinite canvas.
+
+What worked:
+
+- fastapi backend talking to emacs via emacsclient
+- frontend to render HTML versions of org-roam nodes on an infinite canvas
+
 ## Development setup
 
 During development, we
