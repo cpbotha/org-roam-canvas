@@ -17,6 +17,8 @@ In other words:
 
 ## Screenshot(s)
 
+This is the Obsidian canvas, showing a single markdown file (yellow) and five Emacs Orgmode / Org-roam nodes:
+
 ![](screenshots/20231118-org-roam-canvas-demo.jpg)
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
