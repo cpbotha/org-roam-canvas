@@ -21,8 +21,8 @@ dependencies:
     specifier: ^4.4.5
     version: 4.4.5(react-dom@18.2.0)(react@18.2.0)
   react-embed:
-    specifier: ^3.6.0
-    version: 3.6.0(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^3.7.0
+    version: 3.7.0(react-dom@18.2.0)(react@18.2.0)
   react-resizable:
     specifier: ^3.0.5
     version: 3.0.5(react-dom@18.2.0)(react@18.2.0)
@@ -1555,8 +1555,8 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /react-embed@3.6.0(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-sSiAIix6jQEvspitGG34l1L/VkZhVN/tugk/0h1EVTpIDDVUauXs/yGjc1NRPM1bH40CJaKjbaESehBzcc33CQ==}
+  /react-embed@3.7.0(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-Mqaje4PB28vGiGLqq7S8Qey8j4rlQeXvTOTduoEmSRN6zmS5fDUwO/Oz0utuMhSoY9lgdInT61bho/lwFihYkA==}
     peerDependencies:
       react: '*'
       react-dom: '*'
