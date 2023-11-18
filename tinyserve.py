@@ -1,7 +1,3 @@
-import logging
-import re
-import subprocess
-import tempfile
 from pathlib import Path
 from threading import Lock
 
@@ -62,12 +58,25 @@ blockquote {
 """
 
 
+@app.get("/node.css")
+async def get_node_css():
+    return Response(content=CSS, media_type="text/css")
+
+
 @app.get("/node/{or_node_id}")
 def get_or_node_details(or_node_id: str):
     det = utils_emacs.get_or_node_details(or_node_id)
-    # add title, because obsidian shows that above the little block as well
+
+    # - add title, because obsidian shows that above the little block as well
+    # - full file:/// links in this webview don't do anything if you click on them, but e.g. /bleh/
+    #   will go to localhost:8000/bleh/ (ctrl-click to open with system)
+    #   - make special endpoint that will cause our backend to open the file with system mime handler
     html = f"""
-<html lang="en"><head><title>{det["title"]}</title><style>{CSS}</style><body>{det["html"]}</body></html>
+<html lang="en"><head><title>{det["title"]}</title><link rel="stylesheet" href="/node.css" /><body>
+[<a href="file://{det["file"]}">{Path(det["file"]).name}</a>]
+(( <a href="/mobile/dsc-alarm.md">bleh bleh</a> ))
+{det["html"]}
+</body></html>
 """
     return Response(content=html, media_type="text/html")
 
