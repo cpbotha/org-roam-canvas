@@ -60,24 +60,35 @@ def ask_emacs(elisp: str, create_frame=False) -> str:
         cmd.append("-c")
         cmd.append("--no-wait")
 
-    with tempfile.NamedTemporaryFile() as tmp:
-        cmd.extend(["--eval", f'(write-region {elisp} nil "{tmp.name}")'])
+    # we have to do this nasty non-context-manager thing because Windows will otherwise
+    # not allow the subprocess (emacs) to write to the file
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.close()
 
-        # serialize access to emacs, else we would often get empty output when searching for a node id
-        with mutex:
-            ret = subprocess.run(cmd, capture_output=True, text=True)
+    # on windows, replace backslashes with forward slashes
+    fn = Path(tmp.name).as_posix()
+    print(f"{tmp.name} --> {fn}")
 
-        if ret.stderr:
-            raise HTTPException(status_code=404, detail=ret.stderr)
+    cmd.extend(["--eval", f'(write-region {elisp} nil "{fn}")'])
 
-        # when going via stdout, we would have to do this special emacs unquote
-        # but now we're writing emacs output to tempfile, so unquoting not required
-        # unquoted = unquote_emacsclient_eval_output(ret.stdout)
-        # if unquoted == "nil":
-        #     logging.error(f"ask_emacs error: elisp -> {ret.stdout} -> {unquoted}")
-        #     raise HTTPException(status_code=404, detail="emacsclient returned nil")
+    # serialize access to emacs, else we would often get empty output when searching for a node id
+    with mutex:
+        ret = subprocess.run(cmd, capture_output=True, text=True)
 
-        return tmp.read().decode("utf-8")
+    if ret.stderr:
+        raise HTTPException(status_code=404, detail=ret.stderr)
+
+    # when going via stdout, we would have to do this special emacs unquote
+    # but now we're writing emacs output to tempfile, so unquoting not required
+    # unquoted = unquote_emacsclient_eval_output(ret.stdout)
+    # if unquoted == "nil":
+    #     logging.error(f"ask_emacs error: elisp -> {ret.stdout} -> {unquoted}")
+    #     raise HTTPException(status_code=404, detail="emacsclient returned nil")
+
+    p = Path(tmp.name)
+    output = p.open(mode="rb").read().decode("utf-8")
+    p.unlink()
+    return output
 
 
 # we get literal "s back at start and finish of return
@@ -135,6 +146,7 @@ file:%s
 
 # new style: tell emacs to do a body-only export, excluding <body> tags
 # this does NOT include the title in a <h1>
+# if you see empty topic links, try org-roam-update-org-id-locations
 ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (with-temp-buffer
