@@ -55,6 +55,10 @@ blockquote {
   color: var(--text-light);
   font-style: italic;
 }
+
+img {
+    max-width: 95%;
+}
 """
 
 
