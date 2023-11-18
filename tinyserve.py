@@ -81,8 +81,11 @@ def get_or_node_details(or_node_id: str):
     return Response(content=html, media_type="text/html")
 
 
+# / on Linux, c:/ or the drive from where you're running this script
+# I want orc-files to be able to accept full path names
+root = Path.cwd().anchor
 # /orc-files/ is mounted all by itself
-app.mount("/orc-files", StaticFiles(directory="/"), name="orc-files")
+app.mount("/orc-files", StaticFiles(directory=root), name="orc-files")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
