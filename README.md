@@ -11,9 +11,11 @@ This is a FastAPI server which talks to a running Emacs process via `emacsclient
 
 In other words:
 
-1. Click on the select link above
-2. Select and org-roam node
-3. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
+1. Once: `poetry install`
+2. `poetry run python orserve.py`
+3. Click on the select link above
+4. Select and org-roam node
+5. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
 
 ## Screenshot(s)
 
