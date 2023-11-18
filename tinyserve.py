@@ -1,5 +1,6 @@
 from pathlib import Path
 from threading import Lock
+import webbrowser
 
 import uvicorn
 from fastapi import APIRouter, FastAPI, HTTPException, Response
@@ -73,12 +74,17 @@ def get_or_node_details(or_node_id: str):
     #   - make special endpoint that will cause our backend to open the file with system mime handler
     html = f"""
 <html lang="en"><head><title>{det["title"]}</title><link rel="stylesheet" href="/node.css" /><body>
-[<a href="file://{det["file"]}">{Path(det["file"]).name}</a>]
-(( <a href="/mobile/dsc-alarm.md">bleh bleh</a> ))
+[<a href="/os-open/?filename={det["file"]}">{Path(det["file"]).name}</a>]
 {det["html"]}
 </body></html>
 """
     return Response(content=html, media_type="text/html")
+
+
+@app.get("/os-open/")
+def open(filename: str):
+    webbrowser.open(filename)
+    return "Requested system to open file with associated app."
 
 
 # / on Linux, c:/ or the drive from where you're running this script
