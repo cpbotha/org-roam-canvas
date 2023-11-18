@@ -14,11 +14,12 @@ def _rewrite_link(link: str, dir: Path) -> str:
         # with no netloc, path should be a file the backend can resolve locally
         # dir_path contains the file with the links, and links can be relative to that
         link_path = dir / Path(parsed_url.path)
+        # rewrite link to /orc-files/ which will be mapped to /api/orc-files/
         new_url = urlunparse(
             (
                 "",
                 "",
-                f"orc-files/{link_path}",
+                f"/orc-files/{link_path}",
                 "",
                 "",
                 "",
@@ -52,4 +53,3 @@ def rewrite_links(html: str, dir: Path):
                 num_rewrote += 1
 
     return str(soup) if num_rewrote > 0 else html
-
