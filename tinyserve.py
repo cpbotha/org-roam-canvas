@@ -84,7 +84,7 @@ def get_or_node_details(or_node_id: str):
 @app.get("/os-open/")
 def open(filename: str):
     webbrowser.open(filename)
-    return "Requested system to open file with associated app."
+    return f"Requested system to open {filename} with associated app."
 
 
 # / on Linux, c:/ or the drive from where you're running this script
@@ -94,4 +94,4 @@ root = Path.cwd().anchor
 app.mount("/orc-files", StaticFiles(directory=root), name="orc-files")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, port=3813)
