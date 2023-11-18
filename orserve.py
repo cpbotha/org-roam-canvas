@@ -1,16 +1,15 @@
+# debug with:
+# uvicorn --reload --port 3813 orserve:app
+
 from pathlib import Path
 from threading import Lock
 import webbrowser
+from urllib.parse import quote_plus
 
 import uvicorn
-from fastapi import APIRouter, FastAPI, HTTPException, Response
+from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import SQLModel
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from utils import rewrite_links
 import utils_emacs
 
 mutex = Lock()
@@ -26,7 +25,7 @@ def select_node():
     id = node["id"]
     title = node["title"]
 
-    redirect_url = f"/node/{id}"
+    redirect_url = f"/node/?id={quote_plus(id)}"
 
     # we could return a redirect response:
     # return Response(status_code=303, headers={"Location": redirect_url})
@@ -64,9 +63,9 @@ async def get_node_css():
     return Response(content=CSS, media_type="text/css")
 
 
-@app.get("/node/{or_node_id}")
-def get_or_node_details(or_node_id: str):
-    det = utils_emacs.get_or_node_details(or_node_id)
+@app.get("/node/")
+def get_or_node_details(id: str):
+    det = utils_emacs.get_or_node_details(id)
 
     # - add title, because obsidian shows that above the little block as well
     # - full file:/// links in this webview don't do anything if you click on them, but e.g. /bleh/
@@ -74,7 +73,7 @@ def get_or_node_details(or_node_id: str):
     #   - make special endpoint that will cause our backend to open the file with system mime handler
     html = f"""
 <html lang="en"><head><title>{det["title"]}</title><link rel="stylesheet" href="/node.css" /><body>
-[<a href="/os-open/?filename={det["file"]}">{Path(det["file"]).name}</a>]
+[<a href="/os-open/?filename={quote_plus(det["file"])}">{Path(det["file"]).name}</a>]
 {det["html"]}
 </body></html>
 """
