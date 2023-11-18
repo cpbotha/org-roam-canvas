@@ -128,7 +128,8 @@ def select_node():
 
 # old style: full document, search and return <body> only without <body> tags
 # this includes the title in a <h1>...</h1> block
-ELISP_GND_OLD = """(let ((fnpos (org-roam-id-find "{node_id}")))
+# but it also includes the footer
+ELISP_GND_EXTRACT_BODY = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (with-temp-buffer
       (insert-file-contents (car fnpos))
@@ -147,7 +148,7 @@ file:%s
 # new style: tell emacs to do a body-only export, excluding <body> tags
 # this does NOT include the title in a <h1>
 # if you see empty topic links, try org-roam-update-org-id-locations
-ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
+ELISP_GND_TEMP_BUFFER = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (with-temp-buffer
       (insert-file-contents (car fnpos))
@@ -158,6 +159,25 @@ ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
 file:%s
 %s" (org-roam-node-title node) (org-roam-node-file node) html)
         ))))
+"""
+
+# newer style re-use existing buffer
+# this applies emacs loading logic and hooks so that even mdroam files can be handled
+# it re-uses the buffer if it's already open, so it can be faster
+# TODO: in case of markdown, use markdown-live-preview-export, then get that
+#       buffer's contents. at this moment, we're just getting the raw markdown.
+#       Not many people use mdroam, so mostly only my problem
+ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
+  (when fnpos
+    (let ((buffer (find-file-noselect (car fnpos))))
+      (with-current-buffer buffer
+        (save-excursion
+          (goto-char (cdr fnpos))
+          (let* ((node (org-roam-node-at-point))
+                 (html (org-export-as 'html (org-at-heading-p) nil t)))
+            (format "title:%s
+file:%s
+%s" (org-roam-node-title node) (org-roam-node-file node) html)))))))
 """
 
 
