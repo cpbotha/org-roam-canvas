@@ -2,6 +2,14 @@
 
 Render Emacs org-roam nodes on your Obsidian Canvas!
 
+## Screenshot(s)
+
+This is the Obsidian canvas, showing a single markdown file (yellow) and five Emacs Orgmode / Org-roam nodes:
+
+![](screenshots/20231118-org-roam-canvas-demo.jpg)
+
+## How it works
+
 This is a FastAPI server which talks to a running Emacs process via `emacsclient` and offers the following endpoints:
 
 - http://localhost:3813/select/ - pop up Emacs so that user can select org-roam node, then show the node detail (HTML) link which user can drag-and-drop onto the obsidian canvas
@@ -9,19 +17,15 @@ This is a FastAPI server which talks to a running Emacs process via `emacsclient
 - http://localhost:3813/orc-files/FULL_FILE_PATH - links are rewritten so that rendered and embedded HTML nodes can load attachments
 - http://localhost:3813/os-open/?filename=FULL_FILE_PATH - so that embedded HTML nodes can link back to the source files. When clicked, system will open org file with registered app, which should be Emacs
 
-In other words:
+You will typically only interact with the first `/select/` endpoint, the rest are used by Obsidian.
+
+## How to run it
 
 1. Once: `poetry install`
 2. `poetry run python orserve.py`
 3. Click on the select link above
 4. Select and org-roam node
 5. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
-
-## Screenshot(s)
-
-This is the Obsidian canvas, showing a single markdown file (yellow) and five Emacs Orgmode / Org-roam nodes:
-
-![](screenshots/20231118-org-roam-canvas-demo.jpg)
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
