@@ -27,6 +27,24 @@ You will typically only interact with the first `/select/` endpoint, the rest ar
 4. Select and org-roam node
 5. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
 
+## Pro-tip: Emacs lisp to get link
+
+Instead of using the `select` link above, you can also just add the following function to your `init.el` and invoke it with the org-roam node open that you would like to embed. If successful, it will copy the link to your clipboard so that you can Ctrl/Cmd-V on the Obsidian Canvas.
+
+```lisp
+(defun ors-get-link()
+    "Get org-roam-canvas link to org-roam node containing point. After invoking this, Ctrl-V on the Obsidian Canvas."
+    (interactive)
+    (let ((node (org-roam-node-at-point)))
+      (if node
+          (progn
+            (message "Placed org-roam-canvas link on clipboard for node: %s" (org-roam-node-title node))
+            (kill-new (url-encode-url (format "http://localhost:3813/node/?id=%s" (org-roam-node-id node)))))
+        (message "No org-roam node found."))))
+```
+
+See [this demo screen capture](screenshots/20231119-org-roam-canvas-ors-get-link.mp4).
+
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
 This started as a half-working prototype for serving HTML exports of org-roam nodes so that the frontend can show them on an infinite canvas.
