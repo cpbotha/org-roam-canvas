@@ -31,6 +31,8 @@ You will typically only interact with the first `/select/` endpoint, the rest ar
 
 Instead of using the `select` link above, you can also just add the following function to your `init.el` and invoke it with the org-roam node open that you would like to embed. If successful, it will copy the link to your clipboard so that you can Ctrl/Cmd-V on the Obsidian Canvas.
 
+This works for file and heading nodes.
+
 ```lisp
 (defun ors-get-link()
     "Get org-roam-canvas link to org-roam node containing point. After invoking this, Ctrl-V on the Obsidian Canvas."
@@ -43,7 +45,7 @@ Instead of using the `select` link above, you can also just add the following fu
         (message "No org-roam node found."))))
 ```
 
-See the following screen capture for a demo: ![](https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f)
+The following screen capture shows `ors-get-link` in action: <video src="https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f"></video>
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
