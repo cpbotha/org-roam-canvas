@@ -5,14 +5,7 @@ import tempfile
 from pathlib import Path
 from threading import Lock
 
-import uvicorn
-from fastapi import APIRouter, FastAPI, HTTPException, Response
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import SQLModel
-from sqlmodel.ext.asyncio.session import AsyncSession
-
+from fastapi import HTTPException
 from utils import rewrite_links
 
 mutex = Lock()
