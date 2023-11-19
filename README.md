@@ -43,7 +43,7 @@ Instead of using the `select` link above, you can also just add the following fu
         (message "No org-roam node found."))))
 ```
 
-See the following screen capture for a demo: https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f
+See the following screen capture for a demo: ![](https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f)
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
