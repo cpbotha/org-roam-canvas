@@ -96,5 +96,8 @@ root = Path.cwd().anchor
 # /orc-files/ is mounted all by itself
 app.mount("/orc-files", StaticFiles(directory=root), name="orc-files")
 
-if __name__ == "__main__":
+def run():
     uvicorn.run(app, port=3813)
+
+if __name__ == "__main__":
+    run()
