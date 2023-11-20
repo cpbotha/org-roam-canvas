@@ -27,6 +27,7 @@ pytest = "^7.3.1"
 [tool.poetry.scripts]
 # will pipx be able to pick this up?
 orserve = "org_roam_canvas.orserve:run"
+orserve_dev = "org_roam_canvas.orserve:run_dev"
 
 [build-system]
 requires = ["poetry-core"]

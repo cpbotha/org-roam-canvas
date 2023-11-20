@@ -93,8 +93,16 @@ root = Path.cwd().anchor
 # /orc-files/ is mounted all by itself
 app.mount("/orc-files", StaticFiles(directory=root), name="orc-files")
 
+
 def run():
+    """Run orserve for production."""
     uvicorn.run(app, port=3813)
+
+
+def run_dev():
+    """Run orserve with auto-reload for development."""
+    uvicorn.run("org_roam_canvas.orserve:app", port=3813, reload=True)
+
 
 if __name__ == "__main__":
     run()
