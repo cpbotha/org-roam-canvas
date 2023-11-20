@@ -4,6 +4,9 @@ version = "1.0.0"
 description = ""
 authors = ["Charl P. Botha <cpbotha@vxlabs.com>"]
 readme = "README.md"
+# need the following because name and package differ wrt - and _
+# https://python-poetry.org/docs/basic-usage/#project-setup
+packages = [{include = "org_roam_canvas"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -20,6 +23,10 @@ greenlet = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
+
+[tool.poetry.scripts]
+# will pipx be able to pick this up?
+orserve = "org_roam_canvas.orserve:run"
 
 [build-system]
 requires = ["poetry-core"]
