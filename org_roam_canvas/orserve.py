@@ -1,6 +1,3 @@
-# debug with:
-# uvicorn --reload --port 3813 orserve:app
-
 from pathlib import Path
 from threading import Lock
 import webbrowser
@@ -10,7 +7,7 @@ import uvicorn
 from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
 
-import utils_emacs
+from . import utils_emacs
 
 mutex = Lock()
 

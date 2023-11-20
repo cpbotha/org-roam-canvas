@@ -6,7 +6,7 @@ from pathlib import Path
 from threading import Lock
 
 from fastapi import HTTPException
-from utils import rewrite_links
+from .utils import rewrite_links
 
 mutex = Lock()
 
