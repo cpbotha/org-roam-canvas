@@ -1,19 +1,27 @@
 # Dev notes
 
-## 2023-11-18
+## Windows quickstart
+
+- install full Python 3.11 via official installer download
+- install poetry: `py.exe -3.11 -m pip install poetry`
+- install this projects dependencies: `py.exe -3.11 -m poetry install -vv`
+
+## Journal
+
+### 2023-11-18
 
 Stepped away, played with Obsidian Canvas some more, and then had the idea to convert this to a much simpler idea: Serve org-roam nodes as HTML to Obsidian.
 
-## 2023-06-04
+### 2023-06-04
 
 - switched to pnpm because unlike npm, it does not mind the symlinked `node_modules`
 
-## 2023-05-29
+### 2023-05-29
 
 - fixed emacs comms and factored out (see emacsclient quoted values) note below
 - managed to create an unfilled org-mode note via UI
 
-## emacsclient returns quoted return values :(
+### emacsclient returns quoted return values :(
 
 After spending too many hours debugging / trying to work around this, I run into
 this fix: https://github.com/grettke/ebse
@@ -32,7 +40,7 @@ emacsclient --eval '(princ "foo\n")' | emacs -Q --batch --eval '(progn (insert-f
 
 note the 65536 value for `END`, else it errors out with "Maximum buffer size exceeded"
 
-## switch to org-roam node via emacsclient
+### switch to org-roam node via emacsclient
 
 ```shell
 # this will return the node objects representation
@@ -53,7 +61,7 @@ emacsclient -c -eval '(progn (org-roam-node-find)(org-roam-node-at-point))'
 emacsclient -c -eval '(progn  (org-roam-node-find) (let ((node (org-roam-node-at-point))) (format "id:%s\ntitle:%s\nfile:%s" (org-roam-node-id node) (org-roam-node-title node) (org-roam-node-file node))))'
 ```
 
-## return html version of org-roam node
+### return html version of org-roam node
 
 ```lisp
 ;; if heading then export subtree only (SUBTREEP), else export buffer
@@ -74,13 +82,13 @@ file:%s
         ))))
 ```
 
-## react-embed looks pretty amazing
+### react-embed looks pretty amazing
 
 https://codesandbox.io/s/red-fog-umlic?file=/src/App.js
 
 ... but youtube refuses to render over here. See BUG below.
 
-## dragging / moving / resizing
+### dragging / moving / resizing
 
 - https://github.com/react-grid-layout/react-draggable
 - https://github.com/react-grid-layout/react-resizable
