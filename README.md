@@ -19,15 +19,36 @@ This is a FastAPI server which talks to a running Emacs process via `emacsclient
 
 You will typically only interact with the first `/select/` endpoint, the rest are used by Obsidian.
 
-## How to run it
+## How to install and run the server
 
-1. Once: `poetry install`
-2. `poetry run python orserve.py`
-3. Click on the select link above
-4. Select and org-roam node
-5. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
+### Option 1: The easy way, with pipx
 
-## Pro-tip: Emacs lisp to get link
+Ensure you have [pipx](https://github.com/pypa/pipx) installed, and then:
+
+```shell
+# install org-roam-canvas (once)
+pipx install git+https://github.com/cpbotha/org-roam-canvas.git
+# now start the server
+orserve
+```
+
+### Option 2: The source-checkout way
+
+Ensure that you have [poetry](https://python-poetry.org/) installed, and then:
+
+0. Get the source code: `git clone https://github.com/cpbotha/org-roam-canvas.git`
+1. Create venv, install deps: `cd org-roam-canvas && poetry install`
+2. Start the server: `poetry run orserve`
+
+## How to use it
+
+1. Click on the select link above
+2. Select and org-roam node
+3. Drag and drop the offered link onto the Obsidian canvas and see the rendered note
+
+... alternatively, use the `ors-get-link` method from the next section.
+
+### Pro-tip: Emacs lisp to get link
 
 Instead of using the `select` link above, you can also just add the following function to your `init.el` and invoke it with the org-roam node open that you would like to embed. If successful, it will copy the link to your clipboard so that you can Ctrl/Cmd-V on the Obsidian Canvas.
 
