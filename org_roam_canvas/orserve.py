@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from threading import Lock
 import webbrowser
@@ -10,6 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from . import utils_emacs
 
 mutex = Lock()
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
     openapi_url="/orc/openapi.json", docs_url="/orc/docs", redoc_url="/orc/redoc"
@@ -65,13 +68,13 @@ async def get_node_css():
 
 
 @app.get("/node/")
+#@lru_cache(maxsize=64)
 def get_or_node_details(id: str):
     det = utils_emacs.get_or_node_details(id)
 
     # - add title, because obsidian shows that above the little block as well
     # - full file:/// links in this webview don't do anything if you click on them, but e.g. /bleh/
-    #   will go to localhost:8000/bleh/ (ctrl-click to open with system)
-    #   - make special endpoint that will cause our backend to open the file with system mime handler
+    #   will go to localhost:8000/bleh/ (ctrl/cmd-click to open with system), so we make /os-open/ endpoint
     html = f"""
 <html lang="en"><head><title>{det["title"]}</title><link rel="stylesheet" href="/node.css" /><body>
 [<a href="/os-open/?filename={quote_plus(det["file"])}">{Path(det["file"]).name}</a>]
