@@ -83,9 +83,21 @@ def get_or_node_details(id: str):
 
 @app.get("/os-open/")
 def open(filename: str):
-    webbrowser.open(filename)
-    return f"Requested system to open {filename} with associated app."
+    # convert filename into file:// link
+    file_uri = Path(filename).absolute().as_uri()
+    webbrowser.open(file_uri)
 
+    html = f"""<html><body>
+<p>
+Requested system to open {Path(filename).name} with associated app.
+</p>
+<p>
+If this has replaced your Obsidian Canvas note view, right-click on the note title, and 'Reload page' to get your note back.
+</p>
+"""
+
+
+    return Response(media_type="text/html", content=html)
 
 # / on Linux, c:/ or the drive from where you're running this script
 # I want orc-files to be able to accept full path names
