@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from threading import Lock
+import time
 
 from fastapi import HTTPException
 from .utils import rewrite_links
@@ -66,7 +67,9 @@ def ask_emacs(elisp: str, create_frame=False) -> str:
 
     # serialize access to emacs, else we would often get empty output when searching for a node id
     with mutex:
+        start_ns = time.perf_counter_ns()
         ret = subprocess.run(cmd, capture_output=True, text=True)
+        logging.info(f"emacsclient took {(time.perf_counter_ns() - start_ns)/1e6:.1f} ms")
 
     if ret.stderr:
         raise HTTPException(status_code=404, detail=ret.stderr)
@@ -156,21 +159,20 @@ file:%s
 
 # newer style re-use existing buffer
 # this applies emacs loading logic and hooks so that even mdroam files can be handled
-# it re-uses the buffer if it's already open, so it can be faster
-# TODO: in case of markdown, use markdown-live-preview-export, then get that
-#       buffer's contents. at this moment, we're just getting the raw markdown.
-#       Not many people use mdroam, so mostly only my problem
+# it re-uses the buffer if it's already open, so it could be faster
+# Important: this disables org-id-update-id-locations, because it can slow down export 100x!
 ELISP_GND = """(let ((fnpos (org-roam-id-find "{node_id}")))
   (when fnpos
     (let ((buffer (find-file-noselect (car fnpos))))
       (with-current-buffer buffer
         (save-excursion
           (goto-char (cdr fnpos))
-          (let* ((node (org-roam-node-at-point))
-                 (html (org-export-as 'html (org-at-heading-p) nil t)))
-            (format "title:%s
+          (cl-letf (((symbol-function 'org-id-update-id-locations) #'ignore))
+            (let* ((node (org-roam-node-at-point))
+                   (html (org-export-as 'html (org-at-heading-p) nil t)))
+              (format "title:%s
 file:%s
-%s" (org-roam-node-title node) (org-roam-node-file node) html)))))))
+%s" (org-roam-node-title node) (org-roam-node-file node) html))))))))
 """
 
 
