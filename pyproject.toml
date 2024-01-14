@@ -10,10 +10,9 @@ packages = [{include = "org_roam_canvas"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.100.0"
-uvicorn = "^0.22.0"
+fastapi = "^0.109.0"
+uvicorn = "^0.25.0"
 beautifulsoup4 = "^4.12.2"
-greenlet = "^2.0.2"
 
 # only required for org-roam-canvas, not for org-roam-server
 #sqlmodel = "^0.0.8"
