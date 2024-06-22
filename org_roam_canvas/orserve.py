@@ -92,7 +92,6 @@ def open(filename: str):
     # convert filename into file:// link
     file_uri = Path(filename).absolute().as_uri()
     # webbrowser.open(file_uri)
-    # sys.
     filepath = filename
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', filepath))
