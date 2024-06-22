@@ -10,6 +10,9 @@ from fastapi.staticfiles import StaticFiles
 
 from . import utils_emacs
 
+
+import subprocess, os, platform
+
 mutex = Lock()
 
 logging.basicConfig(level=logging.INFO)
@@ -88,7 +91,15 @@ def get_or_node_details(id: str):
 def open(filename: str):
     # convert filename into file:// link
     file_uri = Path(filename).absolute().as_uri()
-    webbrowser.open(file_uri)
+    # webbrowser.open(file_uri)
+    # sys.
+    filepath = filename
+    if platform.system() == 'Darwin':       # macOS
+        subprocess.call(('open', filepath))
+    elif platform.system() == 'Windows':    # Windows
+        os.startfile(filepath)
+    else:                                   # linux variants
+        subprocess.call(('xdg-open', filepath))
 
     html = f"""<html><body>
 <p>
