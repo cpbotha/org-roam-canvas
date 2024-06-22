@@ -67,6 +67,9 @@ This works for file and heading nodes.
 ```
 
 The following screen capture shows `ors-get-link` in action: <video src="https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f"></video>
+## open file in emacs
+click on the `[name_of_file.org]` link on the top of page:
+![](screenshots/going-back-to-emacs.png)
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
