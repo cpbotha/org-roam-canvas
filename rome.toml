@@ -1,0 +1,10 @@
+line-length = 120
+
+[lint]
+# https://docs.astral.sh/ruff/settings/#select
+# default for select is ["E4", "E7", "E9", "F"]
+# we add D for docstrings, and N for naming conventions
+extend-select = ["D", "N"]
+
+[lint.pydocstyle]
+convention = "numpy"
