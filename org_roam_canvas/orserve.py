@@ -1,7 +1,9 @@
 import logging
+import os
+import platform
+import subprocess
 from pathlib import Path
 from threading import Lock
-import webbrowser
 from urllib.parse import quote_plus
 
 import uvicorn
@@ -9,9 +11,6 @@ from fastapi import FastAPI, Response
 from fastapi.staticfiles import StaticFiles
 
 from . import utils_emacs
-
-
-import subprocess, os, platform
 
 mutex = Lock()
 
@@ -71,7 +70,7 @@ async def get_node_css():
 
 
 @app.get("/node/")
-#@lru_cache(maxsize=64)
+# @lru_cache(maxsize=64)
 def get_or_node_details(id: str):
     det = utils_emacs.get_or_node_details(id)
 
@@ -89,16 +88,19 @@ def get_or_node_details(id: str):
 
 @app.get("/os-open/")
 def open(filename: str):
+    # previous file opener:
     # convert filename into file:// link
-    file_uri = Path(filename).absolute().as_uri()
+    # file_uri = Path(filename).absolute().as_uri()
     # webbrowser.open(file_uri)
+
+    # new file opener:
     filepath = filename
-    if platform.system() == 'Darwin':       # macOS
-        subprocess.call(('open', filepath))
-    elif platform.system() == 'Windows':    # Windows
+    if platform.system() == "Darwin":  # macOS
+        subprocess.call(("open", filepath))
+    elif platform.system() == "Windows":  # Windows
         os.startfile(filepath)
-    else:                                   # linux variants
-        subprocess.call(('xdg-open', filepath))
+    else:  # linux variants
+        subprocess.call(("xdg-open", filepath))
 
     html = f"""<html><body>
 <p>
@@ -109,8 +111,8 @@ If this has replaced your Obsidian Canvas note view, right-click on the note tit
 </p>
 """
 
-
     return Response(media_type="text/html", content=html)
+
 
 # / on Linux, c:/ or the drive from where you're running this script
 # I want orc-files to be able to accept full path names
