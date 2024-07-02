@@ -6,16 +6,16 @@ Render Emacs org-roam nodes on your Obsidian Canvas!
 
 This is the Obsidian canvas, showing a single markdown file (yellow) and five Emacs Orgmode / Org-roam nodes:
 
-![](screenshots/20231118-org-roam-canvas-demo.jpg)
+![screenshot of org-roam-canvas notes in the obsidian canvas](screenshots/20231118-org-roam-canvas-demo.jpg)
 
 ## How it works
 
 This is a FastAPI server which talks to a running Emacs process via `emacsclient` and offers the following endpoints:
 
-- http://localhost:3813/select/ - pop up Emacs so that user can select org-roam node, then show the node detail (HTML) link which user can drag-and-drop onto the obsidian canvas
-- http://localhost:3813/node/?id=NODE_ID - abovementioned node detail link which returns HTML version of the org-roam node. This is embedded by Obsidian
-- http://localhost:3813/orc-files/FULL_FILE_PATH - links are rewritten so that rendered and embedded HTML nodes can load attachments
-- http://localhost:3813/os-open/?filename=FULL_FILE_PATH - so that embedded HTML nodes can link back to the source files. When clicked, system will open org file with registered app, which should be Emacs
+- <http://localhost:3813/select/> - pop up Emacs so that user can select org-roam node, then show the node detail (HTML) link which user can drag-and-drop onto the obsidian canvas
+- <http://localhost:3813/node/?id=NODE_ID> - abovementioned node detail link which returns HTML version of the org-roam node. This is embedded by Obsidian
+- <http://localhost:3813/orc-files/FULL_FILE_PATH> - links are rewritten so that rendered and embedded HTML nodes can load attachments
+- <http://localhost:3813/os-open/?filename=FULL_FILE_PATH> - so that embedded HTML nodes can link back to the source files. When clicked, system will open org file with registered app, which should be Emacs
 
 You will typically only interact with the first `/select/` endpoint, the rest are used by Obsidian.
 
@@ -66,10 +66,15 @@ This works for file and heading nodes.
         (message "No org-roam node found."))))
 ```
 
-The following screen capture shows `ors-get-link` in action: <video src="https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f"></video>
-## open file in emacs
-click on the `[name_of_file.org]` link on the top of page:
-![](screenshots/going-back-to-emacs.png)
+The following screen capture shows `ors-get-link` in action:
+
+<video src="https://github.com/cpbotha/org-roam-canvas/assets/937871/3aeae786-5c0b-44ab-b7da-8067908c909f"></video>
+
+## Open file in emacs
+
+Click on the `[name_of_file.org]` link at the top of the embedded page:
+
+![Screenshot of .org link at top of embedded org note](screenshots/going-back-to-emacs.png)
 
 ## DEPRECATED prototype: backend and canvas rendering frontend
 
