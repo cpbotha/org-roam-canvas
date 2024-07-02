@@ -197,6 +197,12 @@ def get_or_node_details(or_node_id: str):
 
             return output_dict
 
+        else:
+            logging.error(
+                f"Unable to parse `file:` and `html:` from emacsclient: {output}"
+            )
+            raise HTTPException(status_code=404, detail="No file: found")
+
     else:
         logging.error(f"Unable to parse output from emacsclient: {output}")
         raise HTTPException(status_code=404, detail="No node found")
