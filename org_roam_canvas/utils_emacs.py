@@ -2,11 +2,13 @@ import logging
 import re
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from threading import Lock
-import time
+from typing import Dict
 
 from fastapi import HTTPException
+
 from .utils import rewrite_links
 
 mutex = Lock()
@@ -69,7 +71,9 @@ def ask_emacs(elisp: str, create_frame=False) -> str:
     with mutex:
         start_ns = time.perf_counter_ns()
         ret = subprocess.run(cmd, capture_output=True, text=True)
-        logging.info(f"emacsclient took {(time.perf_counter_ns() - start_ns)/1e6:.1f} ms")
+        logging.info(
+            f"emacsclient took {(time.perf_counter_ns() - start_ns)/1e6:.1f} ms"
+        )
 
     if ret.stderr:
         raise HTTPException(status_code=404, detail=ret.stderr)
@@ -176,7 +180,7 @@ file:%s
 """
 
 
-def get_or_node_details(or_node_id: str):
+def get_or_node_details(or_node_id: str) -> Dict[str, str]:
     """Given an org-roam node ID, find its title and contents."""
     # execute emacsclient to ask it for details about the org-roam node with or_node_id
     output = ask_emacs(ELISP_GND.format(node_id=or_node_id))
